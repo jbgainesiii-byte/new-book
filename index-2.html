@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-Time Book Club Hub</title>
+  <script src="https://cdn.tailwindcss.com" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Lora:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f8f7f4; color: #334155; }
+    h1, h2, h3 { font-family: 'Lora', serif; }
+    .insight-card, .vote-card { animation: fadeIn 0.5s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .reaction-btn.reacted { background-color: #ec4899; color: white; }
+    .tab-active { border-color: #4f46e5; color: #4f46e5; background-color: #eef2ff; }
+    .slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; background: #4f46e5; cursor: pointer; border-radius: 50%; }
+    .slider::-moz-range-thumb { width: 20px; height: 20px; background: #4f46e5; cursor: pointer; border-radius: 50%; }
+  </style>
+</head>
+<body class="antialiased">
+  <div class="container mx-auto p-4 sm:p-6 md:p-8 max-w-3xl">
+    <header class="relative text-center mb-12 rounded-2xl overflow-hidden">
+  <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1600&q=60')] bg-cover bg-center"></div>
+  <div class="absolute inset-0 bg-gradient-to-r from-slate-900/40 to-slate-800/20"></div>
+  <div class="absolute inset-0 bg-white/10"></div>
+  <div class="relative p-10 md:p-14">
+
+      <h1 class="text-4xl md:text-5xl font-bold text-slate-800">Book Club Hub</h1>
+      <p class="mt-2 text-lg text-slate-500">Shared Insights & Experiences</p>
+      </div>
+</header>
+
+    <!-- Meeting Info Panel -->
+    
+<section id="meeting-info" class="mb-12">
+  <div class="bg-white p-6 rounded-2xl shadow-lg border border-indigo-200">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h2 class="text-2xl font-bold text-slate-700 mb-1">📅 Next Meeting</h2>
+        <p class="text-slate-600"><strong>Book:</strong> <span id="infoBook">The Compound Effect</span></p>
+        <p class="text-slate-600"><strong>Date:</strong> <span id="infoDate">August 23, 2025</span></p>
+        <p class="text-slate-600"><strong>Time:</strong> <span id="infoTime">11:00 AM</span></p>
+        <p class="text-slate-600"><strong>Location/Link:</strong> <span id="infoLocation">Southfield Public Library</span></p>
+        <p class="text-slate-600"><strong>Focus:</strong> <span id="infoFocus">Ch. 1–2</span></p>
+      </div>
+      <div class="bg-indigo-50 text-indigo-800 rounded-xl p-4 text-center md:min-w-[220px]">
+        <div class="text-xs uppercase tracking-wide font-semibold">Starts in</div>
+        <div id="countdown" class="text-2xl font-extrabold mt-1">--d --h --m --s</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+    
+<!-- Book of the Month -->
+<section id="book-of-the-month" class="mb-12">
+  <div class="bg-white p-6 rounded-2xl shadow-lg border border-amber-200">
+    <h2 class="text-2xl font-bold text-slate-700 mb-4">📖 Book of the Month</h2>
+    <div class="flex flex-col sm:flex-row gap-6">
+      <img id="bookCover" alt="Book cover" class="w-full sm:w-40 h-56 object-cover rounded-lg border border-slate-200 filter brightness-110"
+           src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=400&q=60">
+      <div class="flex-1">
+        <h3 id="bookTitle" class="text-xl font-bold text-slate-800">The Compound Effect</h3>
+        <p id="bookDesc" class="mt-2 text-slate-600 text-sm">Small, smart choices + consistency = massive results.</p>
+        <!-- Optional: link to borrow/buy -->
+        <a id="bookLink" href="#" class="inline-block mt-3 text-indigo-600 hover:text-indigo-700 text-sm underline decoration-indigo-300">More about this book</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+        <!-- Voting Section -->
+    <section id="voting-section" class="mb-12">
+      <h2 class="text-2xl font-bold text-slate-700 mb-6 text-center">Vote for the Next Book</h2>
+      <div id="books-list" class="space-y-3 mb-6"></div>
+      <div class="bg-white p-6 rounded-2xl shadow-lg">
+        <h3 class="text-lg font-bold text-slate-700 mb-3">Suggest a New Book</h3>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <input id="bookTitleInput" type="text" placeholder="Book Title" class="flex-grow px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition">
+          <button id="suggestBookBtn" class="bg-indigo-600 text-white font-bold py-2 px-5 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition">Suggest</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Input Section -->
+    <section id="input-section" class="mb-12">
+      <div class="bg-white p-6 rounded-2xl shadow-lg">
+        <h2 class="text-2xl font-bold text-slate-700 mb-4">Share Your Experience</h2>
+        <div class="space-y-4">
+          <input id="nameInput" type="text" placeholder="Your Name" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition">
+          <textarea id="insightInput" placeholder="e.g., 'I tried walking for 30 minutes and here's what happened...'" class="w-full px-4 py-2 border border-slate-300 rounded-lg h-24 focus:ring-2 focus:ring-indigo-500 outline-none transition"></textarea>
+          <button id="submitButton" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition disabled:bg-slate-400">Share</button>
+          <p id="errorMessage" class="text-red-500 text-sm text-center hidden"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Insights Display Section -->
+    <section id="insights-display" class="mb-12">
+      <h2 class="text-2xl font-bold text-slate-700 mb-6 text-center">Group Insights</h2>
+      <div id="insights-list" class="space-y-4"></div>
+    </section>
+
+    <div class="border-t-2 border-dashed border-slate-300 my-16"></div>
+
+    <!-- Study Guide Section -->
+    <section id="study-guide">
+      <header class="relative text-center mb-12 rounded-2xl overflow-hidden">
+  <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1600&q=60')] bg-cover bg-center"></div>
+  <div class="absolute inset-0 bg-gradient-to-r from-slate-900/40 to-slate-800/20"></div>
+  <div class="absolute inset-0 bg-white/10"></div>
+  <div class="relative p-10 md:p-14">
+
+        <h1 class="text-3xl md:text-4xl font-bold text-slate-800">The Compound Effect Study Guide</h1>
+        <p class="mt-2 text-lg text-slate-500">Interactive Tools & Chapter Notes</p>
+        </div>
+</header>
+
+      <!-- Core Principle Chart -->
+      <div id="core-principle" class="mb-16">
+        <h2 class="text-2xl font-bold text-slate-700 mb-4 text-center">The Power of Small Gains</h2>
+        <div class="bg-white p-6 rounded-2xl shadow-lg">
+          <div class="chart-container relative w-full max-w-3xl mx-auto h-64 md:h-96">
+            <canvas id="compoundEffectChart"></canvas>
+          </div>
+          <div class="mt-8">
+            <div class="flex items-center justify-center space-x-4">
+              <label for="daySlider" class="text-sm font-medium text-slate-600">Day:</label>
+              <input id="daySlider" type="range" min="1" max="31" value="15" class="w-full max-w-md slider">
+              <span id="dayLabel" class="font-bold text-indigo-600 text-lg w-8 text-center">15</span>
+            </div>
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
+              <div class="bg-indigo-50 p-4 rounded-lg"><p class="text-sm text-indigo-800">Penny's Value</p><p id="pennyValue" class="text-2xl font-bold text-indigo-600"></p></div>
+              <div class="bg-slate-50 p-4 rounded-lg"><p class="text-sm text-slate-800">Lump Sum</p><p class="text-2xl font-bold text-slate-600">$3,000,000</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chapter Exploration -->
+      <div id="chapters" class="mb-16">
+        <h2 class="text-2xl font-bold text-slate-700 mb-6 text-center">Chapter-by-Chapter Breakdown</h2>
+        <div class="bg-white p-6 rounded-2xl shadow-lg">
+          <div class="border-b border-slate-200"><nav id="chapter-tabs" class="flex flex-wrap -mb-px" aria-label="Tabs"></nav></div>
+          <div id="chapter-content" class="mt-6"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    // 1) Replace this with your real Firebase Web App config from console.firebase.google.com
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID"
+    };
+    // Optional: if you use custom tokens
+    const initialAuthToken = null;
+    const appId = 'default-book-club';
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp, query, doc, updateDoc, arrayUnion, arrayRemove, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUserId = null;
+
+    // IMPORTANT: Firestore paths must NOT start with a leading slash.
+    const insightsCollectionPath = `artifacts/${appId}/public/data/insights`;
+    const booksCollectionPath = `artifacts/${appId}/public/data/books`;
+    const meetingInfoDocPath   = `artifacts/${appId}/public/data/meetingInfo/details`;
+
+    // UI Elements
+    const nameInput = document.getElementById('nameInput');
+    const insightInput = document.getElementById('insightInput');
+    const submitButton = document.getElementById('submitButton');
+    const insightsList = document.getElementById('insights-list');
+        const errorMessage = document.getElementById('errorMessage');
+    const booksList = document.getElementById('books-list');
+    const bookTitleInput = document.getElementById('bookTitleInput');
+    const suggestBookBtn = document.getElementById('suggestBookBtn');
+
+    // --- Authentication ---
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        currentUserId = user.uid;
+                listenForInsights();
+        listenForBooks();
+        listenForMeetingInfo();
+      } else {
+        currentUserId = null;
+              }
+    });
+
+    async function signInUser() {
+      try {
+        if (initialAuthToken) { await signInWithCustomToken(auth, initialAuthToken); }
+        else { await signInAnonymously(auth); }
+      } catch (error) { console.error("Authentication failed:", error); }
+    }
+
+    // --- Real-Time Firestore Functions ---
+    async function addInsight() {
+      const name = nameInput.value.trim();
+      const insight = insightInput.value.trim();
+      if (!name || !insight) { errorMessage.textContent = "Please fill out both fields."; errorMessage.classList.remove('hidden'); return; }
+      errorMessage.classList.add('hidden');
+      submitButton.disabled = true;
+      try {
+        await addDoc(collection(db, insightsCollectionPath), {
+          authorName: name, text: insight, authorId: currentUserId,
+          createdAt: serverTimestamp(), reactions: []
+        });
+        insightInput.value = '';
+      } catch (error) { console.error("Error adding insight: ", error); }
+      finally { submitButton.disabled = false; }
+    }
+
+    function listenForInsights() {
+      const q = query(collection(db, insightsCollectionPath));
+      onSnapshot(q, (snapshot) => {
+        const insights = [];
+        snapshot.forEach((d) => insights.push({ id: d.id, ...d.data() }));
+        insights.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        insightsList.innerHTML = insights.length === 0 ? '<p class="text-center text-slate-500">No insights yet. Be the first!</p>' : '';
+        insights.forEach(renderInsight);
+      });
+    }
+
+    function renderInsight(data) {
+      const card = document.createElement('div');
+      card.className = 'insight-card bg-white p-5 rounded-xl shadow-md';
+      const timestamp = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleString() : 'Just now';
+      const hasReacted = data.reactions?.includes(currentUserId);
+      card.innerHTML = `<p class="text-slate-700">${data.text}</p>
+        <div class="mt-4 flex justify-between items-center">
+          <span class="text-xs text-slate-500 font-bold">- ${data.authorName}</span>
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-slate-400">${timestamp}</span>
+            <button data-id="${data.id}" class="reaction-btn ${hasReacted ? 'reacted' : 'bg-slate-100 hover:bg-pink-100'} text-pink-500 text-xs font-bold py-1 px-2 rounded-full transition">
+              ❤️ <span class="reaction-count">${data.reactions?.length || 0}</span>
+            </button>
+          </div>
+        </div>`;
+      insightsList.appendChild(card);
+    }
+
+    async function handleReaction(insightId) {
+      if (!currentUserId) return;
+      const insightRef = doc(db, insightsCollectionPath, insightId);
+      const insightDoc = await getDoc(insightRef);
+      if (insightDoc.exists()) {
+        const reactions = insightDoc.data().reactions || [];
+        if (reactions.includes(currentUserId)) {
+          await updateDoc(insightRef, { reactions: arrayRemove(currentUserId) });
+        } else {
+          await updateDoc(insightRef, { reactions: arrayUnion(currentUserId) });
+        }
+      }
+    }
+
+    function listenForBooks() {
+      const q = query(collection(db, booksCollectionPath));
+      onSnapshot(q, (snapshot) => {
+        const books = [];
+        snapshot.forEach((d) => books.push({ id: d.id, ...d.data() }));
+        books.sort((a, b) => (b.votes?.length || 0) - (a.votes?.length || 0));
+        booksList.innerHTML = books.length === 0 ? '<p class="text-center text-sm text-slate-500">No book suggestions yet.</p>' : '';
+        books.forEach(renderBook);
+      });
+    }
+
+    function renderBook(data) {
+      const card = document.createElement('div');
+      card.className = 'vote-card bg-white p-4 rounded-xl shadow-md flex items-center justify-between';
+      const hasVoted = data.votes?.includes(currentUserId);
+      card.innerHTML = `<div><p class="font-bold text-slate-800">${data.title}</p><p class="text-xs text-slate-500">Suggested by: ${data.suggesterName}</p></div>
+        <button data-id="${data.id}" class="vote-btn ${hasVoted ? 'bg-indigo-600 text-white' : 'bg-slate-100 hover:bg-indigo-100'} font-bold py-2 px-4 rounded-lg transition">
+          Vote <span class="vote-count bg-white text-indigo-600 text-xs font-bold rounded-full px-2 py-1 ml-2">${data.votes?.length || 0}</span>
+        </button>`;
+      booksList.appendChild(card);
+    }
+
+    async function suggestBook() {
+      const title = bookTitleInput.value.trim();
+      const name = nameInput.value.trim();
+      if (!title || !name) { alert("Please provide a book title and your name."); return; }
+      try {
+        await addDoc(collection(db, booksCollectionPath), { title: title, suggesterName: name, votes: [] });
+        bookTitleInput.value = '';
+      } catch (error) { console.error("Error suggesting book: ", error); }
+    }
+
+    async function handleVote(bookId) {
+      if (!currentUserId) return;
+      const bookRef = doc(db, booksCollectionPath, bookId);
+      const bookDoc = await getDoc(bookRef);
+      if (bookDoc.exists()) {
+        const votes = bookDoc.data().votes || [];
+        if (votes.includes(currentUserId)) { await updateDoc(bookRef, { votes: arrayRemove(currentUserId) }); }
+        else { await updateDoc(bookRef, { votes: arrayUnion(currentUserId) }); }
+      }
+    }
+
+    let countdownInterval;
+const DEFAULT_ISO = '2025-08-23T11:00:00';
+function startCountdown(targetIso) {
+  if (countdownInterval) clearInterval(countdownInterval);
+  if (!targetIso) { document.getElementById("countdown").textContent = "--d --h --m --s"; return; }
+  const target = new Date(targetIso);
+  const fmt = (n)=> String(Math.max(0, Math.floor(n))).padStart(2,"0");
+  const tick = () => {
+    const now = new Date();
+    let secs = Math.max(0, Math.floor((target - now) / 1000));
+    const d = Math.floor(secs / 86400); secs %= 86400;
+    const h = Math.floor(secs / 3600); secs %= 3600;
+    const m = Math.floor(secs / 60); const s = secs % 60;
+    document.getElementById("countdown").textContent = `${d}d ${fmt(h)}h ${fmt(m)}m ${fmt(s)}s`;
+  };
+  tick(); countdownInterval = setInterval(tick, 1000);
+}
+
+function listenForMeetingInfo() {
+      const ref = doc(db, meetingInfoDocPath);
+      onSnapshot(ref, (d) => {
+        if (d.exists()) {
+          const data = d.data();
+          document.getElementById('infoBook').textContent = data.book || 'TBD';
+          document.getElementById('infoDate').textContent = data.date || 'TBD';
+          document.getElementById('infoLocation').textContent = data.location || 'TBD';
+          document.getElementById('infoFocus').textContent = data.focus || 'TBD';
+        } else {
+          document.getElementById('infoBook').textContent = 'The Compound Effect';
+document.getElementById('infoDate').textContent = 'August 23, 2025';
+document.getElementById('infoTime').textContent = '11:00 AM';
+document.getElementById('infoLocation').textContent = 'Southfield Public Library';
+document.getElementById('infoFocus').textContent = 'Ch. 1–2';
+startCountdown('2025-08-23T11:00:00-04:00');
+        }
+      });
+    }
+
+    // --- Study Guide Functions ---
+    const chapterData = [
+      { id: 1, title: "The Compound Effect in Action", summary: "Introduces the core concept that small, consistent actions are the key to success.", takeaways: ["Success is about choice, not luck.", "The 'microwave mentality' is your enemy.", "Small negative choices also compound."], question: "What is one small habit that could be having a major impact on your life?" },
+      { id: 2, title: "Choices", summary: "Focuses on the power of choice and taking ownership of your decisions.", takeaways: ["Awareness is the first step to change.", "Track your habits to see the reality of your choices.", "Gratitude is a powerful choice."], question: "What is one area of your life where you could start tracking your choices?" },
+      { id: 3, title: "Habits", summary: "Breaks down the psychology of habits—how they are formed and changed.", takeaways: ["Identify your 'Big Why'—your core motivation.", "Replace bad habits with good ones.", "Start small; don't change everything at once."], question: "What is your 'Big Why'?" },
+      { id: 4, title: "Momentum", summary: "Consistent action builds momentum, making it easier to continue and accelerate progress.", takeaways: ["Getting started is the hardest part.", "Routines are essential for momentum.", "Once you have 'Big Mo,' it's easier to keep going."], question: "Think about a time you built momentum. What were the first steps?" },
+      { id: 5, title: "Influences", summary: "Explores the invisible forces that shape our lives: environment, associations, and inputs.", takeaways: ["You are the average of the five people you spend the most time with.", "Your environment can support or sabotage you.", "Be mindful of what you read, watch, and listen to."], question: "Are the top five people you spend time with lifting you up?" },
+      { id: 6, title: "Acceleration", summary: "Once fundamentals are in place, you can accelerate results by going above and beyond.", takeaways: ["Do more than what's expected.", "Look for 'wow' moments to stand out.", "Push through your perceived limits."], question: "Where could you do a little extra to accelerate your results?" }
+    ];
+
+    function setupChart() {
+      const ctx = document.getElementById('compoundEffectChart').getContext('2d');
+      const labels = Array.from({ length: 31 }, (_, i) => `Day ${i + 1}`);
+      const pennyData = Array.from({ length: 31 }, (_, i) => 0.01 * Math.pow(2, i));
+      new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets: [
+          { label: 'Doubling Penny', data: pennyData, borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,0.1)', fill: true, tension: 0.4, pointRadius: 0 },
+          { label: 'Lump Sum', data: Array(31).fill(3000000), borderColor: '#64748b', borderDash: [5,5], fill: false, pointRadius: 0 }
+        ]},
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          scales: {
+            y: { type: 'logarithmic', ticks: { callback: (v)=>v } },
+            x: { grid: { display:false } }
+          },
+          plugins: {
+            legend: { position: 'bottom' },
+            tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(c.parsed.y)}` } }
+          },
+          interaction: { intersect:false, mode:'index' }
+        }
+      });
+    }
+
+    function updateChartDisplay(day) {
+      document.getElementById('dayLabel').textContent = day;
+      document.getElementById('pennyValue').textContent =
+        new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(0.01 * Math.pow(2, day - 1));
+    }
+
+    function setupChapters() {
+      const tabsContainer = document.getElementById('chapter-tabs');
+      chapterData.forEach((c, i) => {
+        const tab = document.createElement('a');
+        tab.href = '#'; tab.dataset.chapterId = c.id;
+        tab.className = `chapter-tab shrink-0 border-b-2 font-medium px-4 py-3 text-sm ${i===0 ? 'tab-active':'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`;
+        tab.innerHTML = `<span class="hidden sm:inline">Ch. ${c.id}: </span>${c.title}`;
+        tabsContainer.appendChild(tab);
+      });
+      renderChapterContent(1);
+    }
+
+    function renderChapterContent(chapterId) {
+      const contentContainer = document.getElementById('chapter-content');
+      const chapter = chapterData.find(c => c.id === chapterId);
+      contentContainer.innerHTML = `<h3 class="text-xl font-bold text-slate-800 mb-2">${chapter.title}</h3>
+        <p class="text-slate-600 mb-4">${chapter.summary}</p>
+        <h4 class="font-semibold text-slate-700 mb-2">Key Takeaways:</h4>
+        <ul class="list-disc list-inside space-y-1 text-slate-600 mb-4">${chapter.takeaways.map(i=>`<li>${i}</li>`).join('')}</ul>
+        <div class="bg-indigo-50 p-4 rounded-lg"><p class="font-semibold text-indigo-800">🤔 Discussion Question:</p><p class="text-indigo-700 mt-1">${chapter.question}</p></div>`;
+    }
+
+    // --- Event Listeners ---
+    insightsList.addEventListener('click', (e) => { const btn = e.target.closest('.reaction-btn'); if (btn) handleReaction(btn.dataset.id); });
+    booksList.addEventListener('click', (e) => { const btn = e.target.closest('.vote-btn'); if (btn) handleVote(btn.dataset.id); });
+    submitButton.addEventListener('click', addInsight);
+    suggestBookBtn.addEventListener('click', suggestBook);
+    document.getElementById('daySlider').addEventListener('input', (e) => updateChartDisplay(parseInt(e.target.value,10)));
+    document.getElementById('chapter-tabs').addEventListener('click', (e) => {
+      e.preventDefault();
+      const targetTab = e.target.closest('.chapter-tab'); if (!targetTab) return;
+      document.querySelectorAll('.chapter-tab').forEach(t=>t.classList.remove('tab-active'));
+      targetTab.classList.add('tab-active');
+      renderChapterContent(parseInt(targetTab.dataset.chapterId,10));
+    });
+
+    // --- Initial Load ---
+    signInUser();
+    setupChart();
+    setupChapters();
+    // Start a default countdown so timer works even before Firestore loads
+    startCountdown(DEFAULT_ISO);
+    // fix initial display mismatch: compute from current slider
+    updateChartDisplay(parseInt(document.getElementById('daySlider').value,10));
+  </script>
+</body>
+</html>
